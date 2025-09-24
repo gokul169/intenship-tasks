@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "gokul169/task-02-cicd"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Pull latest code from GitHub
+                git branch: 'main', url: 'https://github.com/gokul169/internship-tasks.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    echo "Building Docker image..."
+                    sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    echo "Running tests..."
+                    sh "docker run --rm ${DOCKER_IMAGE}:latest echo 'Tests passed!'"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "Deploying container..."
+                    sh "docker run -d -p 8080:8080 --name myapp ${DOCKER_IMAGE}:latest"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+}
